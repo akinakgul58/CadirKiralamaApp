@@ -1,0 +1,355 @@
+﻿@model IEnumerable<CadirKiralamaApp.Models.Teklif>
+@{
+    ViewData["Title"] = "Dashboard - Teklif Yönetimi";
+}
+
+<!-- Sayfa İskeleti ve Tam Yükseklik Ayarı -->
+<div class="flex flex-col h-[calc(100vh-64px)]">
+    <!-- STICKY HEADER & AKSİYON BARI -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+        <div class="px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+
+            <!-- Sol: Breadcrumb & Başlık -->
+            <div class="flex items-center gap-4">
+                <div class="p-2.5 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-file-invoice-dollar text-xl"></i>
+                </div>
+                <div>
+                    <nav class="text-xs font-semibold text-slate-400 mb-0.5 flex items-center gap-2">
+                        <a href="/" class="hover:text-primary transition">Dashboard</a>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
+                        <span class="text-primary">Teklif Yönetimi</span>
+                    </nav>
+                    <h1 class="text-xl font-bold text-dark flex items-center gap-2">
+                        Teklif Listesi ve Genel Bakış
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Sağ: Aksiyon Butonu -->
+            <div>
+                <a href="/Teklif/Ekle" class="bg-primary hover:bg-blue-900 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Yeni Teklif Oluştur
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK ALANI -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+        <div class="max-w-[1500px] mx-auto space-y-4">
+
+            <!-- ARAMA, FİLTRELEME VE SIRALAMA ÇUBUĞU -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4">
+
+                <!-- Arama Kutusu -->
+                <div class="relative w-full lg:w-96">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-slate-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Teklif no, firma adı veya temsilci ara..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-secondary outline-none transition">
+                </div>
+
+                <!-- Filtreler ve Sıralama -->
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <!-- Sıralama -->
+                    <select id="sortSelect" class="w-full sm:w-auto p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-secondary">
+                        <option value="date_desc">Tarih (En Yeni)</option>
+                        <option value="date_asc">Tarih (En Eski)</option>
+                        <option value="amount_desc">Tutar (En Yüksek)</option>
+                        <option value="amount_asc">Tutar (En Düşük)</option>
+                        <option value="name_asc">Firma Adı (A-Z)</option>
+                    </select>
+
+                    <!-- Durum Filtresi (Güncellendi) -->
+                    <select id="statusFilter" class="w-full sm:w-auto p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-secondary">
+                        <option value="all">Tüm Durumlar</option>
+                        <option value="Kabul Edildi">Kabul Edildi</option>
+                        <option value="Beklemede">Beklemede</option>
+                        <option value="Taslak">Taslak</option>
+                        <option value="Reddedildi">Reddedildi</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TEKLİF TABLOSU -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="bg-slate-100/80 text-slate-500 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-4 w-12 text-center">#</th>
+                                <th class="p-4">Teklif / Firma Unvanı</th>
+                                <th class="p-4">Tarih</th>
+                                <th class="p-4">Müşteri Temsilcisi</th>
+                                <th class="p-4 text-right">Toplam Tutar</th>
+                                <th class="p-4 text-center">Durum</th>
+                                <th class="p-4 text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-100">
+                            @if (Model != null && Model.Any())
+                            {
+                                int index = 1;
+                                foreach (var item in Model)
+                                {
+                                    var teklifNo = item.GetType().GetProperty("TeklifNo")?.GetValue(item)?.ToString() ?? $"TKL-{item.Id:D5}";
+                                    var firmaUnvani = item.Cari?.FirmaUnvani ?? item.GetType().GetProperty("FirmaUnvani")?.GetValue(item)?.ToString() ?? "Müşteri Belirtilmemiş";
+                                    var temsilci = item.Cari?.AnaTemsilci ?? item.GetType().GetProperty("AnaTemsilci")?.GetValue(item)?.ToString() ?? item.GetType().GetProperty("MusteriTemsilcisi")?.GetValue(item)?.ToString() ?? "Atanmadı";
+
+                                    var tarihVal = item.GetType().GetProperty("TeklifTarihi")?.GetValue(item) ?? item.GetType().GetProperty("Tarih")?.GetValue(item) ?? DateTime.Now;
+                                    DateTime tarih = Convert.ToDateTime(tarihVal);
+
+                                    var tutarVal = item.GetType().GetProperty("GenelToplam")?.GetValue(item) ?? item.GetType().GetProperty("ToplamTutar")?.GetValue(item) ?? item.GetType().GetProperty("Tutar")?.GetValue(item) ?? 0;
+                                    decimal tutar = Convert.ToDecimal(tutarVal);
+
+                                    // 🚀 DURUM ESNEK HESAPLAMA (Tüm Kabul / Onay Varyasyonları Yakalanır)
+                                    var rawDurum = item.GetType().GetProperty("Durum")?.GetValue(item)?.ToString()?.Trim() ?? "";
+
+                                    string durumClean = "Beklemede";
+                                    if (rawDurum.Equals("Kabul Edildi", StringComparison.OrdinalIgnoreCase) ||
+                                        rawDurum.Equals("KabulEdildi", StringComparison.OrdinalIgnoreCase) ||
+                                        rawDurum.Equals("Onaylandı", StringComparison.OrdinalIgnoreCase) ||
+                                        rawDurum.Equals("Kabul", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        durumClean = "Kabul Edildi";
+                                    }
+                                    else if (rawDurum.Equals("Reddedildi", StringComparison.OrdinalIgnoreCase) ||
+                                             rawDurum.Equals("Red", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        durumClean = "Reddedildi";
+                                    }
+                                    else if (rawDurum.Equals("Taslak", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        durumClean = "Taslak";
+                                    }
+
+                                    string searchData = $"{teklifNo} {firmaUnvani} {temsilci}".ToLower();
+
+                                    <tr class="hover:bg-slate-50 transition group teklif-row"
+                                        data-name="@firmaUnvani"
+                                        data-status="@durumClean"
+                                        data-date="@tarih.ToString("yyyy-MM-dd")"
+                                        data-amount="@tutar"
+                                        data-search="@searchData">
+
+                                        <!-- Sıra No -->
+                                        <td class="p-4 text-center text-slate-400 font-medium row-index">@index</td>
+
+                                        <!-- Teklif No & Firma -->
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-lg bg-blue-50 text-primary flex items-center justify-center font-bold text-xs border border-blue-100">
+                                                    <i class="fas fa-file-alt text-base"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-slate-800">@firmaUnvani</div>
+                                                    <div class="text-xs text-slate-500 font-mono">
+                                                        @teklifNo
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Tarih -->
+                                        <td class="p-4">
+                                            <div class="text-xs font-semibold text-slate-700">@tarih.ToString("dd.MM.yyyy")</div>
+                                            <div class="text-[11px] text-slate-400">@tarih.ToString("HH:mm")</div>
+                                        </td>
+
+                                        <!-- Müşteri Temsilcisi -->
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold border border-slate-200">
+                                                    <i class="fas fa-user-tie text-secondary"></i>
+                                                </div>
+                                                <span class="font-semibold text-slate-700 text-xs">@temsilci</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Toplam Tutar -->
+                                        <td class="p-4 text-right">
+                                            <div class="font-bold text-slate-800 text-sm">@tutar.ToString("N2") ₺</div>
+                                        </td>
+
+                                        <!-- Durum Rozetleri (Badges) -->
+                                        <td class="p-4 text-center">
+                                            @if (durumClean == "Kabul Edildi")
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-700 text-xs font-bold">
+                                                    <i class="fas fa-check-circle text-[10px] mr-1.5"></i> Kabul Edildi
+                                                </span>
+                                            }
+                                            else if (durumClean == "Reddedildi")
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-rose-100 text-rose-700 text-xs font-bold">
+                                                    <i class="fas fa-times-circle text-[10px] mr-1.5"></i> Reddedildi
+                                                </span>
+                                            }
+                                            else if (durumClean == "Taslak")
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+                                                    <i class="fas fa-edit text-[10px] mr-1.5"></i> Taslak
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-700 text-xs font-bold">
+                                                    <i class="fas fa-clock text-[10px] mr-1.5"></i> Beklemede
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <!-- İşlemler -->
+                                        <td class="p-4 text-right">
+                                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <a href="/Teklif/Detay/@item.Id" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition" title="Teklifi Görüntüle / Yazdır">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="/Teklif/Ekle/@item.Id" class="p-2 bg-slate-50 text-slate-600 hover:bg-slate-200 rounded transition" title="Düzenle">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="p-2 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded transition" title="Sil">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    index++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+
+                    <div id="noResultRow" class="hidden p-8 text-center text-slate-500 w-full">
+                        <i class="fas fa-search text-3xl mb-3 text-slate-300 block"></i>
+                        Arama kriterlerinize uygun teklif bulunamadı.
+                    </div>
+                </div>
+
+                <!-- SAYFALAMA (PAGINATION) -->
+                <div class="bg-slate-50 p-4 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+                    <div class="flex items-center gap-2">
+                        <span>Sayfada</span>
+                        <select id="pageSize" class="p-1 border border-slate-200 rounded text-slate-600 outline-none">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="all">Tümü</option>
+                        </select>
+                        <span>göster. Toplam <strong id="totalCount">0</strong> kayıt.</span>
+                    </div>
+
+                    <div class="flex items-center gap-1" id="paginationControls">
+                        <button id="prevPage" class="px-3 py-1.5 bg-white border border-slate-200 rounded text-slate-600 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed">Önceki</button>
+                        <span id="pageInfo" class="px-3 py-1.5 font-semibold text-primary">1 / 1</span>
+                        <button id="nextPage" class="px-3 py-1.5 bg-white border border-slate-200 rounded text-slate-600 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed">Sonraki</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT FİLTRELEME VE SIRALAMA -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const pageSizeSelect = document.getElementById('pageSize');
+
+        const tableBody = document.getElementById('tableBody');
+        const noResultRow = document.getElementById('noResultRow');
+        const totalCountEl = document.getElementById('totalCount');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfoEl = document.getElementById('pageInfo');
+
+        let allRows = Array.from(document.querySelectorAll('.teklif-row'));
+        let filteredRows = [...allRows];
+
+        let currentPage = 1;
+        let pageSize = 10;
+
+        function updateTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedStatus = statusFilter.value;
+            const sortVal = sortSelect.value;
+
+            pageSize = pageSizeSelect.value === 'all' ? allRows.length : parseInt(pageSizeSelect.value);
+
+            // 1. FİLTRELEME
+            filteredRows = allRows.filter(row => {
+                const rowSearchData = row.getAttribute('data-search');
+                const rowStatus = row.getAttribute('data-status');
+
+                const matchesSearch = rowSearchData.includes(searchTerm);
+                const matchesStatus = selectedStatus === 'all' || rowStatus === selectedStatus;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            // 2. SIRALAMA
+            if (sortVal === 'name_asc') {
+                filteredRows.sort((a, b) => a.getAttribute('data-name').localeCompare(b.getAttribute('data-name')));
+            } else if (sortVal === 'date_desc') {
+                filteredRows.sort((a, b) => new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date')));
+            } else if (sortVal === 'date_asc') {
+                filteredRows.sort((a, b) => new Date(a.getAttribute('data-date')) - new Date(b.getAttribute('data-date')));
+            } else if (sortVal === 'amount_desc') {
+                filteredRows.sort((a, b) => parseFloat(b.getAttribute('data-amount')) - parseFloat(a.getAttribute('data-amount')));
+            } else if (sortVal === 'amount_asc') {
+                filteredRows.sort((a, b) => parseFloat(a.getAttribute('data-amount')) - parseFloat(b.getAttribute('data-amount')));
+            }
+
+            // 3. SAYFALAMA
+            const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const paginatedRows = filteredRows.slice(startIndex, endIndex);
+
+            // 4. EKRANA YANSITMA
+            allRows.forEach(row => row.style.display = 'none');
+
+            if (paginatedRows.length === 0) {
+                noResultRow.classList.remove('hidden');
+                noResultRow.style.display = 'block';
+            } else {
+                noResultRow.classList.add('hidden');
+                noResultRow.style.display = 'none';
+
+                paginatedRows.forEach(row => {
+                    row.style.display = '';
+                    tableBody.appendChild(row);
+                });
+            }
+
+            totalCountEl.innerText = filteredRows.length;
+            pageInfoEl.innerText = `${currentPage} / ${totalPages}`;
+
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+        }
+
+        searchInput.addEventListener('input', () => { currentPage = 1; updateTable(); });
+        statusFilter.addEventListener('change', () => { currentPage = 1; updateTable(); });
+        sortSelect.addEventListener('change', () => { currentPage = 1; updateTable(); });
+        pageSizeSelect.addEventListener('change', () => { currentPage = 1; updateTable(); });
+
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--; updateTable(); }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
+            if (currentPage < totalPages) { currentPage++; updateTable(); }
+        });
+
+        updateTable();
+    });
+</script>

@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Çadır ERP</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Renk Yapılandırması -->
+    <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1E387B',
+                            secondary: '#97C1E7'
+                        }
+                    }
+                }
+            }
+    </script>
+
+    <!-- FontAwesome İkon Seti -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="bg-[#F1F5F9] text-slate-800 min-h-screen flex flex-col font-sans text-xs">
+
+    <!-- ÜST NAVİGASYON BAR -->
+    @await Html.PartialAsync("_HeaderNav")
+
+    <!-- MAIN SAYFA İÇERİĞİ -->
+    <main class="flex-1 max-w-[1800px] w-full mx-auto p-3">
+        @RenderBody()
+    </main>
+
+    <!-- HATA BİLDİRİMİ MODALI -->
+    @await Html.PartialAsync("_HataModal")
+
+    <!-- SAĞDAN AÇILAN SİSTEM AYARLARI ÇEKMECESİ -->
+    @* <partial name="_SistemAyarlariDrawer" /> *@
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

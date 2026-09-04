@@ -1,0 +1,120 @@
+﻿<!-- HATA BİLDİRİM & GEÇMİŞİ MODALI -->
+<div id="hataModal" style="display: none;" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-300">
+
+        <!-- Header & Sekmeler -->
+        <div class="bg-[#1E387B] text-white p-3 flex justify-between items-center">
+            <div class="flex items-center gap-4 text-xs font-bold">
+                <button type="button" onclick="window.hataSekmeDegistir('yeni')" id="btnSekmeYeni" class="text-white border-b-2 border-amber-400 pb-0.5 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-exclamation-circle text-amber-400"></i> Yeni Hata Bildir
+                </button>
+                <button type="button" onclick="window.hataSekmeDegistir('gecmis')" id="btnSekmeGecmis" class="text-slate-300 hover:text-white pb-0.5 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-history text-sky-400"></i> Hata Geçmişi
+                </button>
+            </div>
+            <button type="button" onclick="window.hataModalKapat()" class="text-slate-300 hover:text-white text-base cursor-pointer"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- 1. SEKME: YENİ HATA BİLDİRİM FORMU -->
+        <div id="sekmeYeniHata" class="p-4 space-y-3 text-xs">
+            <form id="hataFormu" onsubmit="window.hataFormGonder(event)">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Hata / Konu Başlığı *</label>
+                    <input type="text" id="hataBaslik" required placeholder="Örn: Stok sayfasında filtreleme çalışmıyor" class="w-full border p-2 rounded outline-none focus:border-blue-600 text-xs" />
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Modül / Sayfa</label>
+                    <select id="hataModul" class="w-full border p-2 rounded outline-none bg-white text-xs">
+                        <option value="Stok & Envanter">Stok & Envanter</option>
+                        <option value="Teklifler">Teklifler</option>
+                        <option value="Cari Kartlar">Cari Kartlar</option>
+                        <option value="Sistem / Genel">Sistem / Genel</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Hata Açıklaması ve Detaylar *</label>
+                    <textarea id="hataDetay" rows="4" required placeholder="Aldığınız hatayı veya yaşadığınız sorunu detaylıca yazın..." class="w-full border p-2 rounded outline-none focus:border-blue-600 text-xs"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="window.hataModalKapat()" class="px-3 py-1.5 border rounded text-slate-600 hover:bg-slate-100 cursor-pointer">İptal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded shadow-sm cursor-pointer">Bildirimi Gönder</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. SEKME: HATA BİLDİRİM GEÇMİŞİ TABLOSU -->
+        <div id="sekmeHataGecmisi" style="display: none;" class="p-4 text-xs">
+            <div class="overflow-x-auto max-h-80 border rounded">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-100 text-slate-700 font-bold border-b text-[11px]">
+                        <tr>
+                            <th class="p-2 border-r">Tarih</th>
+                            <th class="p-2 border-r">Modül</th>
+                            <th class="p-2 border-r">Başlık</th>
+                            <th class="p-2 text-center">Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hataGecmisTbody" class="divide-y divide-slate-200">
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2 border-r text-slate-500">21.07.2026</td>
+                            <td class="p-2 border-r font-semibold">Stok & Envanter</td>
+                            <td class="p-2 border-r text-slate-700">Ürün listesi tablo düzeni bozuldu</td>
+                            <td class="p-2 text-center"><span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold">Çözüldü</span></td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2 border-r text-slate-500">20.07.2026</td>
+                            <td class="p-2 border-r font-semibold">Teklifler</td>
+                            <td class="p-2 border-r text-slate-700">Teklif PDF çıktısında logo görünmüyor</td>
+                            <td class="p-2 text-center"><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold">İnceleniyor</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end pt-3">
+                <button type="button" onclick="window.hataModalKapat()" class="px-4 py-1.5 border rounded text-slate-600 hover:bg-slate-100 cursor-pointer">Kapat</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    window.hataModalAc = function() {
+        var modal = document.getElementById('hataModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    };
+
+    window.hataModalKapat = function() {
+        var modal = document.getElementById('hataModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    window.hataSekmeDegistir = function(sekme) {
+        var yeniSekme = document.getElementById('sekmeYeniHata');
+        var gecmisSekme = document.getElementById('sekmeHataGecmisi');
+        var btnYeni = document.getElementById('btnSekmeYeni');
+        var btnGecmis = document.getElementById('btnSekmeGecmis');
+
+        if (sekme === 'yeni') {
+            if (yeniSekme) yeniSekme.style.display = 'block';
+            if (gecmisSekme) gecmisSekme.style.display = 'none';
+            if (btnYeni) btnYeni.className = "text-white border-b-2 border-amber-400 pb-0.5 flex items-center gap-1.5 cursor-pointer";
+            if (btnGecmis) btnGecmis.className = "text-slate-300 hover:text-white pb-0.5 flex items-center gap-1.5 cursor-pointer";
+        } else {
+            if (yeniSekme) yeniSekme.style.display = 'none';
+            if (gecmisSekme) gecmisSekme.style.display = 'block';
+            if (btnGecmis) btnGecmis.className = "text-white border-b-2 border-amber-400 pb-0.5 flex items-center gap-1.5 cursor-pointer";
+            if (btnYeni) btnYeni.className = "text-slate-300 hover:text-white pb-0.5 flex items-center gap-1.5 cursor-pointer";
+        }
+    };
+
+    window.hataFormGonder = function(e) {
+        e.preventDefault();
+        alert('Hata bildiriminiz başarıyla iletildi!');
+        window.hataModalKapat();
+    };
+</script>

@@ -1,0 +1,100 @@
+﻿@model List<CadirKiralamaApp.Models.Stok>
+@{
+    ViewData["Title"] = "Stok Yönetimi";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Stok Yönetimi - Kiralık Çadır</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+            tailwind.config = { theme: { extend: { colors: { primary: '#1E387B', secondary: '#97C1E7', dark: '#0F172A' } } } }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-dark min-h-screen flex flex-col">
+    @await Html.PartialAsync("_HeaderNav")
+
+    <main class="flex-1 p-6 max-w-[1400px] w-full mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-primary">Güncel Stok Durumu</h1>
+                <p class="text-slate-500 text-sm">Depoda ve sahada bulunan çadır / envanter stokları</p>
+            </div>
+            <button onclick="document.getElementById('stokModal').classList.remove('hidden')" class="bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded shadow font-semibold">
+                <i class="fas fa-plus mr-2"></i>Yeni Ürün / Stok Ekle
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-slate-600 border-b">
+                    <tr>
+                        <th class="p-4 font-semibold">Ürün Kodu</th>
+                        <th class="p-4 font-semibold">Ürün / Çadır Adı</th>
+                        <th class="p-4 font-semibold text-center">Toplam Adet</th>
+                        <th class="p-4 font-semibold text-center">Sahada (Kirada)</th>
+                        <th class="p-4 font-semibold text-center">Depoda Hazır</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 font-mono text-slate-500">@item.UrunKodu</td>
+                                <td class="p-4 font-bold text-primary">@item.UrunAdi</td>
+                                <td class="p-4 text-center font-bold">@item.ToplamAdet</td>
+                                <td class="p-4 text-center text-orange-600 font-bold">@item.SahadakiAdet</td>
+                                <td class="p-4 text-center text-green-600 font-bold">@item.DepodakiAdet</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="p-4 text-center text-slate-400">Stokta kayıtlı ürün bulunamadı.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- STOK EKLE MODAL -->
+    <div id="stokModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div class="bg-primary text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold">Yeni Stok Ekle</h3>
+                <button onclick="document.getElementById('stokModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+            </div>
+            <form asp-controller="Stok" asp-action="Ekle" method="post" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold mb-1">Ürün Kodu</label>
+                    <input type="text" name="UrunKodu" class="w-full border p-2 rounded" placeholder="Örn: HTS-WZ10" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1">Ürün Adı</label>
+                    <input type="text" name="UrunAdi" class="w-full border p-2 rounded" placeholder="Örn: HTS WZ 10m Etkinlik Çadırı" required />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">Toplam Adet</label>
+                        <input type="number" name="ToplamAdet" class="w-full border p-2 rounded" value="1" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">Sahadaki Adet</label>
+                        <input type="number" name="SahadakiAdet" class="w-full border p-2 rounded" value="0" required />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="document.getElementById('stokModal').classList.add('hidden')" class="px-4 py-2 border rounded">İptal</button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

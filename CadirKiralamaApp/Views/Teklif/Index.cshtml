@@ -1,0 +1,342 @@
+﻿@model CadirKiralamaApp.ViewModels.TeklifListesiViewModel
+
+@{
+    ViewData["Title"] = "Teklif Yönetimi";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiralık Çadır - Teklif Yönetimi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: { primary: '#1E387B', secondary: '#97C1E7', metallic: '#F1F5F9', dark: '#0F172A' },
+                        fontFamily: { sans: ['Segoe UI', 'Roboto', 'sans-serif'] }
+                    }
+                }
+            }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+            th.sortable:hover {
+                cursor: pointer;
+                background-color: #e2e8f0;
+            }
+
+            .sort-icon {
+                font-size: 0.85em;
+                margin-left: 5px;
+                color: #94a3b8;
+                transition: all 0.2s;
+            }
+
+            .col-search:focus {
+                border-color: #1E387B;
+                outline: none;
+            }
+    </style>
+</head>
+<body class="bg-slate-50 text-dark relative h-screen flex flex-col">
+
+    <!-- ÜST MENÜ (HEADER) -->
+    @await Html.PartialAsync("_HeaderNav")
+
+    <!-- SAYFA İÇERİĞİ -->
+    <main class="flex-1 overflow-auto p-6">
+        <div class="max-w-[1400px] mx-auto">
+
+            <!-- Sayfa Başlığı ve Aksiyonlar -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-primary">Teklif Takip Paneli</h1>
+                    <p class="text-slate-500 text-sm mt-1">Bekleyen ve aktif tekliflerin listesi</p>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <!-- 🎯 TARİH FİLTRESİ EKLENDİ -->
+                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-300 shadow-sm">
+                        <i class="fas fa-calendar-alt text-slate-400"></i>
+                        <select id="dateFilter" class="text-sm border-none outline-none text-slate-600 bg-transparent font-medium cursor-pointer">
+                            <option value="all">Tüm Zamanlar</option>
+                            <option value="today">Bugün</option>
+                            <option value="yesterday">Dün</option>
+                            <option value="thisWeek">Bu Hafta</option>
+                            <option value="lastWeek">Geçen Hafta</option>
+                        </select>
+                    </div>
+
+                    <a asp-controller="Teklif" asp-action="Ekle" class="bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-lg shadow font-semibold flex items-center gap-2 transition">
+                        <i class="fas fa-plus"></i> Yeni Teklif Ekle
+                    </a>
+                </div>
+            </div>
+
+            <!-- TABLO KARTI -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-left border-collapse" id="teklifTable">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold border-b">
+                            <!-- 🎯 SIRALANABİLİR SÜTUN BAŞLIKLARI EKLENDİ -->
+                            <th class="p-3 sortable" data-sort="date" data-index="0">Tarih <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="p-3 sortable" data-sort="string" data-index="1">Firma <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="p-3 sortable" data-sort="string" data-index="2">Müşteri Yetkilisi <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="p-3 sortable" data-sort="string" data-index="3">Konu (Çadır Türü) <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="p-3 text-right sortable" data-sort="number" data-index="4">Genel Toplam <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="p-3 text-center sortable" data-sort="string" data-index="5">Onay Durumu <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="p-3 text-center">İşlem</th>
+                        </tr>
+
+                        <!-- 🎯 SÜTUN BAZLI ARAMA KUTUCUKLARI EKLENDİ -->
+                        <tr class="bg-slate-50 border-b text-xs">
+                            <td class="p-2 px-3"><input type="text" class="w-full border border-slate-300 rounded px-2 py-1 col-search" data-index="0" placeholder="Tarih ara..."></td>
+                            <td class="p-2 px-3"><input type="text" class="w-full border border-slate-300 rounded px-2 py-1 col-search" data-index="1" placeholder="Firma ara..."></td>
+                            <td class="p-2 px-3"><input type="text" class="w-full border border-slate-300 rounded px-2 py-1 col-search" data-index="2" placeholder="Yetkili ara..."></td>
+                            <td class="p-2 px-3"><input type="text" class="w-full border border-slate-300 rounded px-2 py-1 col-search" data-index="3" placeholder="Konu ara..."></td>
+                            <td class="p-2"></td> <!-- Toplam tutarda arama kapalı -->
+                            <td class="p-2 px-3"><input type="text" class="w-full border border-slate-300 rounded px-2 py-1 col-search text-center" data-index="5" placeholder="Durum ara..."></td>
+                            <td class="p-2"></td>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm" id="tableBody">
+                        @if (Model?.Teklifler != null && Model.Teklifler.Any())
+                        {
+                            foreach (var item in Model.Teklifler)
+                            {
+                                var genelToplam = item.TeklifKalemleri?.Sum(k =>
+                                {
+                                    var ham = k.Miktar * k.Fiyat;
+                                    var indirim = ham * (k.IndirimOrani / 100m);
+                                    var net = ham - indirim;
+                                    var kdv = net * (k.KdvOrani / 100m);
+                                    return net + kdv;
+                                }) ?? 0m;
+
+                                var durumStr = item.Durum.ToString();
+                                var durumLower = durumStr.ToLower();
+                                var selectClass = "px-2.5 py-1 rounded-full text-[11px] font-bold border outline-none cursor-pointer transition-colors ";
+
+                                if (durumLower.Contains("kabul") || durumLower.Contains("onay"))
+                                    selectClass += "bg-emerald-100 text-emerald-800 border-emerald-300";
+                                else if (durumLower.Contains("red"))
+                                    selectClass += "bg-rose-100 text-rose-800 border-rose-300";
+                                else
+                                    selectClass += "bg-amber-100 text-amber-800 border-amber-300";
+
+                                // 🎯 FİRMA ADININ GÖZÜKMEME SORUNU BURADA ÇÖZÜLDÜ
+                                var firmaAdiGosterim = item.Cari?.FirmaUnvani ?? item.FirmaAdi ?? "-";
+
+                                // JS Algoritmalarının çalışması için data-* özellikleri eklendi
+                                <tr class="hover:bg-slate-50 transition table-row-item" data-tarih="@item.TeklifTarihi.ToString("yyyy-MM-dd")">
+                                    <td class="p-3 text-slate-500" data-sort-val="@item.TeklifTarihi.ToString("yyyyMMdd")">
+                                        @item.TeklifTarihi.ToString("dd.MM.yyyy")
+                                    </td>
+
+                                    <td class="p-3 font-bold text-primary">@firmaAdiGosterim</td>
+
+                                    <td class="p-3 text-slate-700">@(item.MusteriYetkilisi ?? "-")</td>
+
+                                    <td class="p-3 text-slate-600">@(item.TeklifKonusu ?? "-")</td>
+
+                                    <td class="p-3 text-right font-bold text-slate-800" data-sort-val="@genelToplam.ToString("F2").Replace(",", ".")">
+                                        @genelToplam.ToString("N2") ₺
+                                    </td>
+
+                                    <td class="p-3 text-center">
+                                        <select onchange="teklifDurumGuncelle(@item.Id, this)" class="@selectClass">
+                                            <option value="Beklemede" selected="@(durumStr == "Beklemede" ? "selected" : null)">⏳ Beklemede</option>
+                                            <option value="KabulEdildi" selected="@(durumStr == "KabulEdildi" || durumStr == "Onaylandı" ? "selected" : null)">✓ Kabul Edildi</option>
+                                            <option value="Reddedildi" selected="@(durumStr == "Reddedildi" ? "selected" : null)">✕ Reddedildi</option>
+                                        </select>
+                                    </td>
+
+                                    <td class="p-3 text-center">
+                                        <a href="/Teklif/Ekle/@item.Id" class="text-blue-600 hover:text-blue-800" title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="p-4 text-center text-slate-400">
+                                    Kayıtlı teklif bulunamadı.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Alt Bilgi Paneli -->
+                <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-sm text-slate-500">
+                    <div>
+                        Filtrelenen: <span class="font-bold text-dark" id="rowCount">@(Model?.Teklifler?.Count() ?? 0)</span> teklif gösteriliyor.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+            // --- 1. VERİTABANI DURUM GÜNCELLEME İŞLEMİ ---
+            function durumStiliniUygula(selectElement) {
+                const val = selectElement.value.toLowerCase();
+                const baseClass = "px-2.5 py-1 rounded-full text-[11px] font-bold border outline-none cursor-pointer transition-colors ";
+                if (val.includes("kabul") || val.includes("onay")) selectElement.className = baseClass + "bg-emerald-100 text-emerald-800 border-emerald-300";
+                else if (val.includes("red")) selectElement.className = baseClass + "bg-rose-100 text-rose-800 border-rose-300";
+                else selectElement.className = baseClass + "bg-amber-100 text-amber-800 border-amber-300";
+            }
+
+            function teklifDurumGuncelle(id, selectElement) {
+                fetch('/Teklif/DurumGuncelle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${id}&durum=${encodeURIComponent(selectElement.value)}`
+                })
+                    .then(response => response.json())
+                    .then(data => { if (data.success) durumStiliniUygula(selectElement); else alert('Hata oluştu.'); });
+            }
+
+            // --- 2. SÜTUN ARAMA & TARİH FİLTRELEME & SIRALAMA ALGORİTMALARI ---
+            document.addEventListener('DOMContentLoaded', () => {
+                const tableBody = document.getElementById('tableBody');
+                const rows = Array.from(document.querySelectorAll('.table-row-item'));
+                const searchInputs = document.querySelectorAll('.col-search');
+                const dateFilter = document.getElementById('dateFilter');
+                const rowCountEl = document.getElementById('rowCount');
+
+                // Tarih hesaplamaları için
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // Hafta hesaplama fonksiyonu
+                function getWeekNumber(d) {
+                    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+                    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                }
+                const currentWeek = getWeekNumber(today);
+
+                // 🎯 Arama ve Filtreleme Motoru
+                function filterTable() {
+                    let visibleCount = 0;
+                    const filterOption = dateFilter.value;
+
+                    rows.forEach(row => {
+                        let isVisible = true;
+
+                        // A. TARİH KONTROLÜ
+                        const rowDateStr = row.getAttribute('data-tarih');
+                        if (rowDateStr && filterOption !== 'all') {
+                            const rowDate = new Date(rowDateStr);
+                            rowDate.setHours(0, 0, 0, 0);
+
+                            const timeDiff = today.getTime() - rowDate.getTime();
+                            const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                            if (filterOption === 'today' && diffDays !== 0) isVisible = false;
+                            else if (filterOption === 'yesterday' && diffDays !== 1) isVisible = false;
+                            else if (filterOption === 'thisWeek' && getWeekNumber(rowDate) !== currentWeek) isVisible = false;
+                            else if (filterOption === 'lastWeek' && getWeekNumber(rowDate) !== (currentWeek - 1)) isVisible = false;
+                        }
+
+                        // B. KUTUCUK ARAMASI KONTROLÜ (Eğer tarih uygunsa)
+                        if (isVisible) {
+                            searchInputs.forEach(input => {
+                                const searchTerm = input.value.toLowerCase().trim();
+                                if (searchTerm !== "") {
+                                    const colIndex = input.getAttribute('data-index');
+                                    const cell = row.children[colIndex];
+
+                                    // Durum Select'i içindeki yazıyı da okuyabilmek için
+                                    let cellText = cell.querySelector('select')
+                                        ? cell.querySelector('select').options[cell.querySelector('select').selectedIndex].text.toLowerCase()
+                                        : cell.textContent.toLowerCase();
+
+                                    if (!cellText.includes(searchTerm)) {
+                                        isVisible = false;
+                                    }
+                                }
+                            });
+                        }
+
+                        row.style.display = isVisible ? '' : 'none';
+                        if (isVisible) visibleCount++;
+                    });
+
+                    // Toplam rakamını güncelle
+                    rowCountEl.textContent = visibleCount;
+                }
+
+                // Arama kutularına yazıldıkça veya Tarih değiştiğinde tetikle
+                searchInputs.forEach(input => input.addEventListener('keyup', filterTable));
+                dateFilter.addEventListener('change', filterTable);
+
+
+                // 🎯 Başlıklara Tıklayarak Sıralama (Sorting)
+                const headers = document.querySelectorAll('th.sortable');
+                let currentSortCol = -1;
+                let currentSortAsc = true;
+
+                headers.forEach(header => {
+                    header.addEventListener('click', () => {
+                        const index = parseInt(header.getAttribute('data-index'));
+                        const sortType = header.getAttribute('data-sort');
+
+                        if (currentSortCol === index) {
+                            currentSortAsc = !currentSortAsc; // Yön değiştir
+                        } else {
+                            currentSortCol = index;
+                            currentSortAsc = true; // Yeni sütun, Ascending başla
+                        }
+
+                        // İkonları temizle ve tıklanana ata
+                        headers.forEach(h => h.querySelector('.sort-icon').className = 'fas fa-sort sort-icon');
+                        header.querySelector('.sort-icon').className = currentSortAsc ? 'fas fa-sort-up sort-icon text-primary' : 'fas fa-sort-down sort-icon text-primary';
+
+                        // Satırları Sırala
+                        rows.sort((a, b) => {
+                            let valA, valB;
+
+                            // Arkaplanda net sayılarla hesap yapmak için (data-sort-val)
+                            if (a.children[index].hasAttribute('data-sort-val')) {
+                                valA = a.children[index].getAttribute('data-sort-val');
+                                valB = b.children[index].getAttribute('data-sort-val');
+                            } else {
+                                valA = a.children[index].textContent.trim();
+                                valB = b.children[index].textContent.trim();
+                            }
+
+                            if (sortType === 'number') {
+                                valA = parseFloat(valA) || 0;
+                                valB = parseFloat(valB) || 0;
+                            } else if (sortType === 'date') {
+                                valA = parseInt(valA) || 0;
+                                valB = parseInt(valB) || 0;
+                            } else {
+                                valA = valA.toString().toLowerCase();
+                                valB = valB.toString().toLowerCase();
+                            }
+
+                            if (valA < valB) return currentSortAsc ? -1 : 1;
+                            if (valA > valB) return currentSortAsc ? 1 : -1;
+                            return 0;
+                        });
+
+                        // Yeniden DOM'a bas
+                        rows.forEach(row => tableBody.appendChild(row));
+                    });
+                });
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,629 @@
+﻿@model CadirKiralamaApp.Models.Cari
+@{
+    ViewData["Title"] = Model?.Id > 0 ? "Cari Düzenle" : "Yeni Cari Ekle";
+}
+
+<div asp-validation-summary="All" class="text-rose-500 font-semibold mb-4"></div>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari / Firma Kaydı - Kiralık Çadır CRM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: { primary: '#1E387B', secondary: '#97C1E7', metallic: '#F1F5F9', dark: '#0F172A', light: '#F8FAFC' },
+                        fontFamily: { sans: ['Inter', 'Segoe UI', 'sans-serif'] }
+                    }
+                }
+            }
+    </script>
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 10px;
+            }
+
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
+
+            .required-star::after {
+                content: " *";
+                color: #ef4444;
+            }
+    </style>
+</head>
+<body class="bg-light text-dark relative min-h-screen flex flex-col font-sans">
+
+    <!-- ÜST BAR / BREADCRUMB & AKSİYONLAR -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+        <div class="max-w-[1400px] mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+
+            <!-- Sol: Geri Dön Butonu & Navigation & Başlık -->
+            <div class="flex items-center gap-4">
+                <a href="/Cari/Index" class="bg-slate-100 hover:bg-slate-200 text-slate-600 w-10 h-10 rounded-full flex items-center justify-center transition shadow-sm border border-slate-200" title="Listeye Geri Dön">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <nav class="text-xs font-semibold text-slate-400 mb-1 flex items-center gap-2">
+                        <a href="/Cari/Index" class="hover:text-primary transition">Cari Yönetimi</a>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
+                        <span class="text-primary">@(Model?.Id > 0 ? "Cari Bilgilerini Düzenle" : "Yeni Firma / Cari Ekle")</span>
+                    </nav>
+                    <h1 class="text-xl font-bold text-dark flex items-center gap-2">
+                        <i class="fas fa-building text-secondary"></i> @(Model?.Id > 0 ? $"{Model.FirmaUnvani} - Düzenle" : "Firma / Cari Kart Oluştur")
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Sağ: Canlı Durum & Hızlı Butonlar -->
+            <div class="flex items-center gap-3">
+                <!-- Durum Toggle -->
+                <div class="flex items-center bg-slate-100 p-1.5 rounded-lg border border-slate-200">
+                    <span class="text-xs font-bold text-slate-600 px-2">Durum:</span>
+                    <button id="statusBtn" onclick="toggleStatus()" type="button" class="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm transition flex items-center gap-1.5">
+                        <i class="fas fa-check-circle"></i> Aktif
+                    </button>
+                </div>
+
+                <div class="w-px h-6 bg-slate-200 mx-1"></div>
+
+                <button type="button" onclick="resetForm()" class="bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 px-3.5 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5" title="Formu Temizle">
+                    <i class="fas fa-undo"></i> Temizle
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ANA FORM İÇERİĞİ -->
+    <main class="flex-1 p-6 pb-28">
+        <form id="cariForm" asp-action="Ekle" method="post" onsubmit="event.preventDefault(); saveCari(false);" class="max-w-[1400px] mx-auto space-y-6">
+            <!-- C#'a Müşteri Temsilcilerini Taşıyacak Gizli Alan -->
+            <input type="hidden" name="TemsilcilerJson" id="temsilcilerJsonOutput" value="" />
+
+            <!-- ⚡ DÜZELTME 1: ID BİLGİSİNİ GİZLİ OLARAK SAKLIYORUZ (DÜZENLEME İÇİN ŞART) -->
+            <input type="hidden" name="Id" value="@Model?.Id" />
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- SOL & ORTA KOLON (2 Kolon Genişlik) -->
+                <div class="lg:col-span-2 space-y-6">
+
+                    <!-- 1. KART: GENEL VE FİNANSAL BİLGİLER -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h2 class="text-base font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i class="fas fa-id-card text-secondary"></i> 1. Genel ve Kurumsal Bilgiler</span>
+                            <span class="text-xs text-slate-400 font-normal">Kırmızı (<span class="text-red-500">*</span>) alanlar zorunludur</span>
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Müşteri No -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Müşteri / Cari No</label>
+                                <div class="relative">
+                                    <input type="text" id="musteriNo" readonly value="@(Model?.Id > 0 ? $"KC{Model.Id:D6}" : "KC000001")" class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 font-bold text-sm outline-none cursor-not-allowed">
+                                    <i class="fas fa-lock absolute right-3 top-3 text-slate-400 text-xs" title="Sistem Tarafından Otomatik Üretilir"></i>
+                                </div>
+                            </div>
+
+                            <!-- Firma Adı -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1 required-star">Firma Ticari Unvanı / Adı</label>
+                                <!-- ⚡ DÜZELTME: value eklendi -->
+                                <input type="text" id="firmaAdi" name="FirmaUnvani" value="@Model?.FirmaUnvani" required placeholder="Örn: Akme Organizasyon A.Ş." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                            </div>
+
+                            <!-- Cari Tipi -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cari Kategori Tipi</label>
+                                <!-- ⚡ DÜZELTME: asp-for eklendi (Seçili olanı otomatik getirir) -->
+                                <select id="cariTipi" name="CariTipi" asp-for="CariTipi" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                    <option value="Musteri">Müşteri (Alıcı)</option>
+                                    <option value="Potansiyel">Potansiyel Aday (Lead)</option>
+                                    <option value="Tedarikci">Tedarikçi (Satıcı)</option>
+                                    <option value="Partner">Acente / Partner</option>
+                                </select>
+                            </div>
+
+                            <!-- Sektör -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Faaliyet Sektörü</label>
+                                <select id="sektor" name="Sektor" asp-for="Sektor" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                    <option value="">Sektör Seçiniz...</option>
+                                    <option value="Etkinlik &amp; Organizasyon">Etkinlik &amp; Organizasyon</option>
+                                    <option value="İnşaat &amp; Şantiye">İnşaat &amp; Şantiye</option>
+                                    <option value="Lojistik &amp; Depolama">Lojistik &amp; Depolama</option>
+                                    <option value="Fuar &amp; Kongre">Fuar &amp; Kongre</option>
+                                    <option value="Turizm &amp; Otelcilik">Turizm &amp; Otelcilik</option>
+                                    <option value="Kamu / Belediye">Kamu / Belediye</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                            </div>
+
+                            <!-- Vergi Dairesi -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Vergi Dairesi</label>
+                                <input type="text" id="vergiDairesi" name="VergiDairesi" value="@Model?.VergiDairesi" placeholder="Örn: Maslak V.D." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                            </div>
+
+                            <!-- Vergi No / TKN -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Vergi No / T.C. Kimlik No</label>
+                                <input type="text" id="vergiNo" name="VergiNo" value="@Model?.VergiNo" maxlength="11" placeholder="10 veya 11 haneli numara" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. KART: İLETİŞİM VE ADRES BİLGİLERİ -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h2 class="text-base font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                            <i class="fas fa-map-marked-alt text-secondary"></i> 2. İletişim ve Adres Bilgileri
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- Genel Telefon -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Firma Telefonu</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" id="firmaTelefon" name="Telefon" value="@Model?.Telefon" placeholder="0 (212) 000 00 00" class="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Genel E-posta -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Firma E-posta</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" id="firmaEposta" name="Eposta" value="@Model?.Eposta" placeholder="info@firma.com" class="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Web Sitesi -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Firma Web Sitesi</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm"><i class="fas fa-globe"></i></span>
+                                    <input type="url" id="webSitesi" name="WebSitesi" value="@Model?.WebSitesi" placeholder="https://www.firma.com" class="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Fax -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Firma Fax</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm"><i class="fas fa-fax"></i></span>
+                                    <input type="text" id="fax" name="Fax" value="@Model?.Fax" placeholder="0 (212) 000 00 01" class="w-full pl-9 p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cascading Dropdown: Adres Bilgileri -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ülke</label>
+                                <select id="ulke" name="Ulke" onchange="onUlkeChange()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                    <option value="TR">Türkiye</option>
+                                    <option value="DE">Almanya</option>
+                                    <option value="AZ">Azerbaycan</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Şehir</label>
+                                <select id="sehir" name="Sehir" onchange="onSehirChange()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                    <!-- JS ile dinamik dolacak -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">İlçe</label>
+                                <select id="ilce" name="Ilce" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm">
+                                    <!-- JS ile dinamik dolacak -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Açık Adres -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Açık Adres</label>
+                            <!-- ⚡ DÜZELTME: Textarea içine model verisi basıldı -->
+                            <textarea id="acikAdres" name="Adres" rows="3" placeholder="Mahalle, cadde, sokak, bina ve kapı no bilgilerini yazınız..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition text-sm resize-none">@Model?.Adres</textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SAĞ KOLON (1 Kolon Genişlik) -->
+                <div class="space-y-6">
+
+                    <!-- 3. KART: DİNAMİK MÜŞTERİ TEMSİLCİLERİ -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                            <h2 class="text-base font-bold text-primary flex items-center gap-2">
+                                <i class="fas fa-user-tie text-secondary"></i> Müşteri Temsilcileri
+                            </h2>
+                            <button type="button" onclick="openRepModal()" class="bg-primary hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5">
+                                <i class="fas fa-plus"></i> Ekle
+                            </button>
+                        </div>
+
+                        <!-- Temsilci Listesi Container -->
+                        <div id="temsilciListesi" class="space-y-3">
+                            <!-- Temsilciler JS ile buraya eklenecek -->
+                        </div>
+
+                        <!-- Boş Durum (Empty State) -->
+                        <div id="emptyRepState" class="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                            <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                <i class="fas fa-users-slash text-base"></i>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-500">Henüz firma temsilcisi eklenmedi.</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Yukarıdaki buton ile iletişim yetkilisi ekleyebilirsiniz.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- SABİT ALT AKSİYON BARI (Sticky Footer) -->
+            <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg py-3 px-6 z-30">
+                <div class="max-w-[1400px] mx-auto flex justify-end items-center gap-3">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button type="button" onclick="saveCari(true)" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-5 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fas fa-plus-circle text-primary"></i> Kaydet ve Yeni Oluştur
+                        </button>
+
+                        <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-blue-800 text-white px-7 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fas fa-check"></i> @(Model?.Id > 0 ? "GÜNCELLE" : "Cari Kartı Kaydet")
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- TEMSİLCİ EKLEME MODALI (POPUP) -->
+    <div id="repModal" class="fixed inset-0 bg-dark/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="bg-primary text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fas fa-user-plus text-secondary"></i> Müşteri Temsilcisi Ekle / Düzenle
+                </h3>
+                <button type="button" onclick="closeRepModal()" class="text-slate-300 hover:text-white transition"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-5 space-y-3">
+                <input type="hidden" id="modalRepId">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 required-star">Ad Soyad</label>
+                    <input type="text" id="modalRepName" placeholder="Örn: Ali Yılmaz" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-secondary outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Unvan / Görev</label>
+                    <input type="text" id="modalRepTitle" placeholder="Örn: Satın Alma Müdürü" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-secondary outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Telefon Numarası</label>
+                    <input type="tel" id="modalRepPhone" placeholder="0 (5XX) 000 00 00" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-secondary outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">E-posta Adresi</label>
+                    <input type="email" id="modalRepEmail" placeholder="ali.yilmaz@firma.com" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-secondary outline-none">
+                </div>
+
+                <div class="pt-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="modalRepPrimary" class="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary">
+                        <span class="text-xs font-semibold text-slate-600">Bu kişi ana iletişim yetkilisidir</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" onclick="closeRepModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-100 transition">İptal</button>
+                <button type="button" onclick="saveRepresentative()" class="px-5 py-2 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition">Temsilciyi Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST BİLDİRİM KONTEYNERİ -->
+    <div id="toast-container" class="fixed bottom-16 right-5 z-50 flex flex-col gap-3"></div>
+
+    <!-- JAVASCRIPT MANTIĞI -->
+    <script>
+            const locationData = {
+                "TR": {
+                    "İstanbul": ["Şişli", "Kadıköy", "Beşiktaş", "Başakşehir", "Ümraniye"],
+                    "Ankara": ["Çankaya", "Yenimahalle", "Gölbaşı", "Etimesgut"],
+                    "İzmir": ["Konak", "Bornova", "Karşıyaka", "Çeşme"],
+                    "Kocaeli": ["Gebze", "İzmit", "Çayırova"]
+                },
+                "DE": {
+                    "Berlin": ["Mitte", "Pankow", "Spandau"],
+                    "Münih": ["Altstadt", "Schwabing"]
+                },
+                "AZ": {
+                    "Bakü": ["Nizami", "Yasamal", "Sebail"]
+                }
+            };
+
+            let representatives = [];
+            let isStatusActive = true;
+
+            // --- SAYFA YÜKLENDİĞİNDE ÇALIŞACAK MANTIK ---
+            document.addEventListener('DOMContentLoaded', () => {
+                onUlkeChange();
+
+                // ⚡ DÜZELTME: Düzenleme modundaysak kaydedilmiş Adres (Ülke, Şehir, İlçe) verilerini JS ile seçtiriyoruz
+                const savedUlke = "@Model?.Ulke";
+                const savedSehir = "@Model?.Sehir";
+                const savedIlce = "@Model?.Ilce";
+
+                if (savedUlke) {
+                    document.getElementById('ulke').value = savedUlke;
+                    onUlkeChange();
+                }
+                if (savedSehir) {
+                    document.getElementById('sehir').value = savedSehir;
+                    onSehirChange();
+                }
+                if (savedIlce) {
+                    document.getElementById('ilce').value = savedIlce;
+                }
+
+                renderRepresentatives();
+            });
+
+            function onUlkeChange() {
+                const ulkeSelect = document.getElementById('ulke').value;
+                const sehirSelect = document.getElementById('sehir');
+                sehirSelect.innerHTML = '';
+
+                if (locationData[ulkeSelect]) {
+                    Object.keys(locationData[ulkeSelect]).forEach(sehir => {
+                        const opt = document.createElement('option');
+                        opt.value = sehir;
+                        opt.textContent = sehir;
+                        sehirSelect.appendChild(opt);
+                    });
+                }
+                onSehirChange();
+            }
+
+            function onSehirChange() {
+                const ulkeSelect = document.getElementById('ulke').value;
+                const sehirSelect = document.getElementById('sehir').value;
+                const ilceSelect = document.getElementById('ilce');
+                ilceSelect.innerHTML = '';
+
+                if (locationData[ulkeSelect] && locationData[ulkeSelect][sehirSelect]) {
+                    locationData[ulkeSelect][sehirSelect].forEach(ilce => {
+                        const opt = document.createElement('option');
+                        opt.value = ilce;
+                        opt.textContent = ilce;
+                        ilceSelect.appendChild(opt);
+                    });
+                }
+            }
+
+            function toggleStatus() {
+                const btn = document.getElementById('statusBtn');
+                isStatusActive = !isStatusActive;
+
+                if (isStatusActive) {
+                    btn.className = "bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm transition flex items-center gap-1.5";
+                    btn.innerHTML = `<i class="fas fa-check-circle"></i> Aktif`;
+                } else {
+                    btn.className = "bg-slate-400 text-white text-xs font-bold px-3 py-1 rounded-md shadow-sm transition flex items-center gap-1.5";
+                    btn.innerHTML = `<i class="fas fa-minus-circle"></i> Pasif`;
+                }
+            }
+
+            function openRepModal(repId = null) {
+                document.getElementById('modalRepId').value = repId !== null ? repId : '';
+                if (repId !== null) {
+                    const rep = representatives[repId];
+                    document.getElementById('modalRepName').value = rep.name;
+                    document.getElementById('modalRepTitle').value = rep.title;
+                    document.getElementById('modalRepPhone').value = rep.phone;
+                    document.getElementById('modalRepEmail').value = rep.email;
+                    document.getElementById('modalRepPrimary').checked = rep.isPrimary;
+                } else {
+                    document.getElementById('modalRepName').value = '';
+                    document.getElementById('modalRepTitle').value = '';
+                    document.getElementById('modalRepPhone').value = '';
+                    document.getElementById('modalRepEmail').value = '';
+                    document.getElementById('modalRepPrimary').checked = representatives.length === 0;
+                }
+                document.getElementById('repModal').classList.remove('hidden');
+            }
+
+            function closeRepModal() {
+                document.getElementById('repModal').classList.add('hidden');
+            }
+
+            function saveRepresentative() {
+                const name = document.getElementById('modalRepName').value.trim();
+                const title = document.getElementById('modalRepTitle').value.trim();
+                const phone = document.getElementById('modalRepPhone').value.trim();
+                const email = document.getElementById('modalRepEmail').value.trim();
+                const isPrimary = document.getElementById('modalRepPrimary').checked;
+                const repId = document.getElementById('modalRepId').value;
+
+                if (!name) {
+                    showToast('Lütfen temsilcinin ad soyad bilgisini giriniz.', 'warning');
+                    return;
+                }
+
+                if (isPrimary) {
+                    representatives.forEach(r => r.isPrimary = false);
+                }
+
+                const repData = { name, title: title || 'Yetkili', phone, email, isPrimary };
+
+                if (repId !== '') {
+                    representatives[repId] = repData;
+                } else {
+                    representatives.push(repData);
+                }
+
+                closeRepModal();
+                renderRepresentatives();
+                showToast('Temsilci başarıyla eklendi/güncellendi.', 'success');
+            }
+
+            function deleteRepresentative(index) {
+                representatives.splice(index, 1);
+                renderRepresentatives();
+                showToast('Temsilci silindi.', 'info');
+            }
+
+            function renderRepresentatives() {
+                const container = document.getElementById('temsilciListesi');
+                const emptyState = document.getElementById('emptyRepState');
+
+                container.innerHTML = '';
+
+                if (representatives.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+
+                representatives.forEach((rep, index) => {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 border border-slate-200 rounded-lg p-3 relative group hover:border-secondary transition";
+                    card.innerHTML = `
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="font-bold text-sm text-primary">${rep.name}</span>
+                                                        ${rep.isPrimary ? '<span class="bg-blue-100 text-primary text-[10px] font-extrabold px-2 py-0.5 rounded">ANA TEMSİLCİ</span>' : ''}
+                                                    </div>
+                                                    <p class="text-xs text-slate-500 font-medium">${rep.title}</p>
+                                                </div>
+                                                <div class="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">
+                                                    <button type="button" onclick="openRepModal(${index})" class="p-1 text-slate-400 hover:text-primary rounded"><i class="fas fa-pen text-xs"></i></button>
+                                                    <button type="button" onclick="deleteRepresentative(${index})" class="p-1 text-slate-400 hover:text-red-500 rounded"><i class="fas fa-trash text-xs"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 text-xs space-y-1 text-slate-600">
+                                                ${rep.phone ? `<div><i class="fas fa-phone mr-1.5 text-slate-400"></i>${rep.phone}</div>` : ''}
+                                                ${rep.email ? `<div><i class="fas fa-envelope mr-1.5 text-slate-400"></i>${rep.email}</div>` : ''}
+                                            </div>
+                                        `;
+                    container.appendChild(card);
+                });
+            }
+
+            function saveCari(keepOpen = false) {
+                const firmaAdi = document.getElementById('firmaAdi').value.trim();
+
+                if (!firmaAdi) {
+                    document.getElementById('firmaAdi').classList.add('ring-2', 'ring-red-500');
+                    showToast('Lütfen zorunlu alan olan Firma Adını doldurunuz!', 'warning');
+                    return;
+                } else {
+                    document.getElementById('firmaAdi').classList.remove('ring-2', 'ring-red-500');
+                }
+
+                // 🚀 İŞTE BURAYI EKLİYORUZ: Temsilciler dizisini C#'a gitmeden önce gizli input'a aktarıyoruz
+                if (document.getElementById('temsilcilerJsonOutput')) {
+                    document.getElementById('temsilcilerJsonOutput').value = JSON.stringify(representatives);
+                }
+
+                // Formu gönder
+                document.getElementById('cariForm').submit();
+            }
+
+            function resetForm() {
+                document.getElementById('cariForm').reset();
+                representatives = [];
+                renderRepresentatives();
+                showToast('Form alanları temizlendi.', 'info');
+            }
+
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+
+                let bgColor = 'bg-slate-800';
+                let icon = 'fa-info-circle text-blue-400';
+
+                if (type === 'success') { bgColor = 'bg-emerald-600'; icon = 'fa-check-circle text-white'; }
+                if (type === 'warning') { bgColor = 'bg-orange-500'; icon = 'fa-exclamation-triangle text-white'; }
+
+                toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0`;
+                toast.innerHTML = `<i class="fas ${icon} text-sm"></i> <span>${message}</span>`;
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-2', 'opacity-0');
+                }, 10);
+
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+            document.addEventListener('DOMContentLoaded', () => {
+
+                // --- TEMSİLCİLERİ GERİ YÜKLEME ---
+                // C#'tan gelen JSON metnini alıp senin JS dizine çeviriyoruz
+                let rawJson = '@Html.Raw(Model?.TemsilcilerJson ?? "[]")';
+                representatives = JSON.parse(rawJson === "" ? "[]" : rawJson);
+
+                // Senin tasarımındaki temsilcileri ekrana çizen fonksiyonu çağır
+                if (typeof renderRepresentatives === 'function') {
+                    renderRepresentatives();
+                }
+
+                // --- İLÇE VE ŞEHİR BİLGİSİNİ GERİ YÜKLEME ---
+                const savedUlke = '@Html.Raw(Model?.Ulke ?? "")';
+                const savedSehir = '@Html.Raw(Model?.Sehir ?? "")';
+                const savedIlce = '@Html.Raw(Model?.Ilce ?? "")';
+
+                if (savedUlke) {
+                    document.getElementById('ulke').value = savedUlke;
+                    onUlkeChange(); // Senin ülke değiştiğinde çalışan fonksiyonun
+                }
+
+                if (savedSehir) {
+                    document.getElementById('sehir').value = savedSehir;
+                    onSehirChange(); // Senin şehir değiştiğinde çalışan fonksiyonun
+                }
+
+                if (savedIlce) {
+                    // Javascript ilçeleri doldurduktan sonra C#'tan geleni seçtiriyoruz
+                    document.getElementById('ilce').value = savedIlce;
+                }
+            });
+    </script>
+</body>
+</html>

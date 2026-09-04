@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Ayarlar";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Ayarları</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+            tailwind.config = { theme: { extend: { colors: { primary: '#1E387B', secondary: '#97C1E7', dark: '#0F172A' } } } }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-dark min-h-screen flex flex-col">
+
+    @await Html.PartialAsync("_HeaderNav")
+
+    <main class="flex-1 p-6 max-w-[800px] w-full mx-auto">
+        <h1 class="text-2xl font-bold text-primary mb-6">Sistem Ayarları</h1>
+
+        <div class="bg-white rounded-xl shadow border border-slate-200 p-6 space-y-6">
+            <div>
+                <h3 class="font-bold text-slate-800 mb-2">Firma Bilgileri</h3>
+                <p class="text-sm text-slate-500 mb-4">Faturalarda ve teklif belgelerinde yer alacak bilgilerinizi güncelleyebilirsiniz.</p>
+                <div class="space-y-3">
+                    <input type="text" value="Kiralık Çadır Ltd. Şti." class="w-full border p-2 rounded text-sm" />
+                    <input type="text" value="Ankara / Türkiye" class="w-full border p-2 rounded text-sm" />
+                </div>
+            </div>
+
+            <div class="border-t pt-4">
+                <button onclick="alert('Ayarlar kaydedildi.')" class="bg-primary text-white px-6 py-2 rounded shadow font-semibold">Kaydet</button>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

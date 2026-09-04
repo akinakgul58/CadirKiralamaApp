@@ -1,0 +1,329 @@
+﻿<nav class="bg-[#1E387B] text-white shadow-md relative z-50 text-xs font-semibold">
+    <div class="max-w-[1800px] mx-auto px-4 flex justify-between items-center h-11">
+
+        <!-- Sol Menü: Logo & Modüller -->
+        <div class="flex items-center space-x-2 h-full">
+
+            <!-- 🎯 LOGO ALANI -->
+            <a asp-controller="Dashboard" asp-action="Index" class="flex items-center mr-2 hover:opacity-95 transition">
+                <div class="bg-white px-2 py-1 rounded flex items-center justify-center shadow-sm h-8 border border-slate-200">
+                    <img src="/images/kiralik-cadir-logo.png"
+                         alt="Kiralık Çadır Logo"
+                         class="h-6 w-auto object-contain" />
+                </div>
+            </a>
+
+            <!-- Dashboard -->
+            <a asp-controller="Dashboard" asp-action="Index" class="hover:bg-white/10 transition px-2.5 py-1.5 rounded flex items-center gap-1.5">
+                <i class="fas fa-chart-line text-slate-300"></i> Dashboard
+            </a>
+
+            <!-- Teklifler -->
+            <div class="relative group h-full flex items-center">
+                <a asp-controller="Teklif" asp-action="Index" class="hover:bg-white/10 transition px-2.5 py-1.5 rounded flex items-center gap-1.5 outline-none cursor-pointer">
+                    <i class="fas fa-file-invoice text-slate-300"></i> Teklifler <i class="fas fa-chevron-down text-[9px] opacity-70"></i>
+                </a>
+                <div class="hidden group-hover:block absolute left-0 top-full w-48 bg-white text-slate-800 shadow-xl rounded-b border border-slate-200 z-50 py-1 font-normal">
+                    <a asp-controller="Teklif" asp-action="Index" class="block px-3 py-2 hover:bg-slate-100 text-slate-700">
+                        <i class="fas fa-list mr-2 text-slate-500"></i> Teklif Listesi
+                    </a>
+                    <a asp-controller="Teklif" asp-action="Ekle" class="block px-3 py-2 hover:bg-slate-100 text-slate-700 font-semibold">
+                        <i class="fas fa-plus-circle mr-2 text-emerald-600"></i> Yeni Teklif Ekle
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stok & Envanter Dropdown -->
+            <div class="relative group h-full flex items-center">
+                <button type="button" class="hover:bg-white/10 transition px-2.5 py-1.5 rounded flex items-center gap-1.5 outline-none cursor-pointer">
+                    <i class="fas fa-boxes text-slate-300"></i> Stok & Envanter <i class="fas fa-chevron-down text-[9px] opacity-70"></i>
+                </button>
+                <div class="hidden group-hover:block absolute left-0 top-full w-52 bg-white text-slate-800 shadow-xl rounded-b border border-slate-200 z-50 py-1 font-normal">
+                    <a asp-controller="Stok" asp-action="Index" class="block px-3 py-2 hover:bg-slate-100 text-slate-700 font-bold border-b border-slate-100">
+                        <i class="fas fa-warehouse mr-2 text-amber-600"></i> Stok Durumu Sayfası
+                    </a>
+                    <a asp-controller="Stok" asp-action="Urunler" class="block px-3 py-2 hover:bg-slate-100 text-slate-700">
+                        <i class="fas fa-box-open mr-2 text-sky-600"></i> Ürün Listesi (Katalog)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cari Kartlar -->
+            <a asp-controller="Cari" asp-action="Index" class="hover:bg-white/10 transition px-2.5 py-1.5 rounded flex items-center gap-1.5">
+                <i class="fas fa-users text-slate-300"></i> Cari Kartlar
+            </a>
+        </div>
+
+        <!-- Sağ Taraf: Hızlı İşlemler, Hata Bildirimi, Profil & Sistem Ayarları -->
+        <div class="flex items-center gap-2.5">
+
+            <!-- ⚡ HIZLI İŞLEMLER MENÜSÜ -->
+            <div class="relative group h-full flex items-center">
+                <button type="button" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-2.5 py-1 rounded flex items-center gap-1.5 text-[11px] transition shadow-sm border border-amber-400 cursor-pointer outline-none">
+                    <i class="fas fa-bolt text-amber-900"></i> Hızlı İşlemler <i class="fas fa-chevron-down text-[9px]"></i>
+                </button>
+
+                <div class="hidden group-hover:block absolute right-0 top-full w-52 bg-white text-slate-800 shadow-2xl rounded-b border border-slate-200 z-50 py-1.5 font-normal">
+                    <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+                        Kısayollar
+                    </div>
+                    <a asp-controller="Teklif" asp-action="Ekle" class="block px-3 py-2 hover:bg-slate-100 text-slate-700 font-semibold transition">
+                        <i class="fas fa-plus-circle mr-2 text-emerald-600"></i> Yeni Teklif Ekle
+                    </a>
+                    <a asp-controller="Cari" asp-action="Ekle" class="block px-3 py-2 hover:bg-slate-100 text-slate-700 font-semibold transition">
+                        <i class="fas fa-user-plus mr-2 text-blue-600"></i> Yeni Cari Ekle
+                    </a>
+                </div>
+            </div>
+
+            <!-- ⚠️ HATA & GERİ BİLDİRİM İKONU -->
+            <button type="button"
+                    onclick="hataBildirModalAc()"
+                    title="Hata / Geribildirim Bildir"
+                    class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors flex items-center justify-center cursor-pointer">
+                <i class="fas fa-bug text-sm"></i>
+            </button>
+
+            <!-- 👤 KULLANICI PROFİLİ -->
+            <span class="bg-blue-950/80 px-2.5 py-1 rounded text-sky-200 border border-blue-700/50 font-mono text-[11px]">
+                <i class="fas fa-user-circle mr-1 text-sky-400"></i> GÜNER SOLMAZ
+            </span>
+
+            <!-- ⚙️ SİSTEM AYARLARI -->
+            <a asp-controller="Sistem" asp-action="Ayarlar"
+               title="Sistem Ayarları"
+               class="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors flex items-center justify-center cursor-pointer">
+                <i class="fas fa-cog text-sm"></i>
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- HATA & GERİ BİLDİRİM MODALI -->
+<div id="hataModalPenceresi" style="display: none;" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex justify-center items-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-300 text-slate-800">
+
+        <!-- Header & Sekmeler -->
+        <div class="bg-[#1E387B] text-white p-3 flex justify-between items-center">
+            <div class="flex items-center gap-4 text-xs font-bold">
+                <button type="button" id="btnHataYeni" onclick="hataSekmeAktifEt('yeni')" class="text-white border-b-2 border-amber-400 pb-0.5 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-exclamation-circle text-amber-400"></i> Hata Bildir
+                </button>
+                <button type="button" id="btnGeriBildirim" onclick="hataSekmeAktifEt('geribildirim')" class="text-slate-300 hover:text-white pb-0.5 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-lightbulb text-yellow-300"></i> Geri Bildirim (Öneri/Fikir)
+                </button>
+                <button type="button" id="btnHataGecmis" onclick="hataSekmeAktifEt('gecmis')" class="text-slate-300 hover:text-white pb-0.5 flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-history text-sky-400"></i> Bildirim Geçmişi & Durum
+                </button>
+            </div>
+            <button type="button" onclick="hataBildirModalKapat()" class="text-slate-300 hover:text-white text-base cursor-pointer px-2"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- 1. SEKME: HATA BİLDİR FORM -->
+        <div id="sekmeHataForm" class="p-4 space-y-3 text-xs">
+            <form onsubmit="hataKaydet(event)">
+                <div class="mb-3">
+                    <label class="block font-semibold text-slate-700 mb-1">Hata / Konu Başlığı *</label>
+                    <input type="text" id="hataBaslik" required placeholder="Örn: Stok sayfasında arama çalışmıyor" class="w-full border p-2 rounded outline-none focus:border-blue-600 text-xs" />
+                </div>
+                <div class="mb-3">
+                    <label class="block font-semibold text-slate-700 mb-1">Modül / Sayfa</label>
+                    <select id="hataModul" class="w-full border p-2 rounded outline-none bg-white text-xs">
+                        <option value="Stok & Envanter">Stok & Envanter</option>
+                        <option value="Teklifler">Teklifler</option>
+                        <option value="Cari Kartlar">Cari Kartlar</option>
+                        <option value="Sistem / Genel">Sistem / Genel</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="block font-semibold text-slate-700 mb-1">Açıklama *</label>
+                    <textarea id="hataAciklama" rows="4" required placeholder="Aldığınız hatayı detaylıca açıklayın..." class="w-full border p-2 rounded outline-none focus:border-blue-600 text-xs"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="hataBildirModalKapat()" class="px-3 py-1.5 border rounded text-slate-600 hover:bg-slate-100 cursor-pointer">İptal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded shadow-sm cursor-pointer">Gönder</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. SEKME: GERİ BİLDİRİM (ÖNERİ / FİKİR) FORM -->
+        <div id="sekmeGeriBildirim" style="display: none;" class="p-4 space-y-3 text-xs">
+            <form onsubmit="geriBildirimKaydet(event)">
+                <div class="mb-3">
+                    <label class="block font-semibold text-slate-700 mb-1">Geri Bildirim Türü</label>
+                    <div class="flex gap-6 p-2.5 bg-slate-50 border border-slate-200 rounded">
+                        <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                            <input type="radio" name="GeriBildirimTuru" value="Oneri" checked class="w-4 h-4 text-blue-600">
+                            🎯 Öneri
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                            <input type="radio" name="GeriBildirimTuru" value="Fikir" class="w-4 h-4 text-blue-600">
+                            💡 Fikir
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="block font-semibold text-slate-700 mb-1">Açıklama / Mesajınız *</label>
+                    <textarea id="gbAciklama" rows="4" required placeholder="Bizimle paylaşmak istediğiniz öneri veya fikrinizi yazın..." class="w-full border p-2 rounded outline-none focus:border-blue-600 text-xs"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="hataBildirModalKapat()" class="px-3 py-1.5 border rounded text-slate-600 hover:bg-slate-100 cursor-pointer">İptal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-[#1E387B] hover:bg-blue-900 text-white font-bold rounded shadow-sm cursor-pointer flex items-center gap-1.5">
+                        <i class="fas fa-paper-plane"></i> Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 3. SEKME: BİLDİRİM GEÇMİŞİ TABLOSU -->
+        <div id="sekmeHataTablo" style="display: none;" class="p-4 text-xs">
+            <div class="overflow-x-auto max-h-80 border rounded">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-100 text-slate-700 font-bold border-b text-[11px]">
+                        <tr>
+                            <th class="p-2.5 border-r w-24">Tarih</th>
+                            <th class="p-2.5 border-r w-24 text-center">Tür</th>
+                            <th class="p-2.5 border-r w-32">Modül</th>
+                            <th class="p-2.5 border-r">Başlık / Açıklama</th>
+                            <th class="p-2.5 text-center w-36">Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bildirimGecmisTbody" class="divide-y divide-slate-200">
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 border-r text-slate-500 font-mono">21.07.2026</td>
+                            <td class="p-2.5 border-r text-center">
+                                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-red-200 inline-flex items-center gap-1">
+                                    🐛 Hata
+                                </span>
+                            </td>
+                            <td class="p-2.5 border-r font-semibold text-slate-600">Stok & Envanter</td>
+                            <td class="p-2.5 border-r text-slate-800">Ürün listesi tablo düzeni bozuldu</td>
+                            <td class="p-2 text-center">
+                                <select onchange="hataDurumStilGuncelle(this)" class="bg-emerald-100 text-emerald-800 text-[11px] font-bold py-1 px-2 rounded border border-emerald-300 outline-none cursor-pointer w-full text-center">
+                                    <option value="Cozuldu" selected>✓ Çözüldü</option>
+                                    <option value="Inceleniyor">⏳ İnceleniyor</option>
+                                    <option value="Bekliyor">🔴 Bekliyor</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-between items-center pt-3">
+                <span class="text-[11px] text-slate-500 italic"><i class="fas fa-info-circle mr-1"></i> Tüm bildirimleriniz bu listede ortak olarak takip edilir.</span>
+                <button type="button" onclick="hataBildirModalKapat()" class="px-4 py-1.5 border rounded text-slate-600 hover:bg-slate-100 cursor-pointer font-semibold">Kapat</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function hataBildirModalAc() {
+        var modal = document.getElementById('hataModalPenceresi');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function hataBildirModalKapat() {
+        var modal = document.getElementById('hataModalPenceresi');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function hataSekmeAktifEt(sekme) {
+        var form = document.getElementById('sekmeHataForm');
+        var tablo = document.getElementById('sekmeHataTablo');
+        var geribildirim = document.getElementById('sekmeGeriBildirim');
+
+        var btnYeni = document.getElementById('btnHataYeni');
+        var btnGecmis = document.getElementById('btnHataGecmis');
+        var btnGeriBildirim = document.getElementById('btnGeriBildirim');
+
+        var pasifSinif = "text-slate-300 hover:text-white pb-0.5 flex items-center gap-1.5 cursor-pointer";
+        var aktifSinif = "text-white border-b-2 border-amber-400 pb-0.5 flex items-center gap-1.5 cursor-pointer";
+
+        form.style.display = 'none';
+        tablo.style.display = 'none';
+        geribildirim.style.display = 'none';
+
+        btnYeni.className = pasifSinif;
+        btnGecmis.className = pasifSinif;
+        btnGeriBildirim.className = pasifSinif;
+
+        if (sekme === 'yeni') {
+            form.style.display = 'block';
+            btnYeni.className = aktifSinif;
+        } else if (sekme === 'geribildirim') {
+            geribildirim.style.display = 'block';
+            btnGeriBildirim.className = aktifSinif;
+        } else if (sekme === 'gecmis') {
+            tablo.style.display = 'block';
+            btnGecmis.className = aktifSinif;
+        }
+    }
+
+    function tabloyaYeniSatirEkle(tarih, badgeHtml, modul, aciklamaHtml) {
+        var tbody = document.getElementById('bildirimGecmisTbody');
+        var yeniSatir = document.createElement('tr');
+        yeniSatir.className = "hover:bg-slate-50 bg-amber-50/40 transition-colors";
+
+        yeniSatir.innerHTML = `
+                        <td class="p-2.5 border-r text-slate-500 font-mono">${tarih}</td>
+                        <td class="p-2.5 border-r text-center">${badgeHtml}</td>
+                        <td class="p-2.5 border-r font-semibold text-slate-600">${modul}</td>
+                        <td class="p-2.5 border-r text-slate-800">${aciklamaHtml}</td>
+                        <td class="p-2 text-center">
+                            <select onchange="hataDurumStilGuncelle(this)" class="bg-rose-100 text-rose-800 text-[11px] font-bold py-1 px-2 rounded border border-rose-300 outline-none cursor-pointer w-full text-center transition-colors">
+                                <option value="Cozuldu">✓ Çözüldü</option>
+                                <option value="Inceleniyor">⏳ İnceleniyor</option>
+                                <option value="Bekliyor" selected>🔴 Bekliyor</option>
+                            </select>
+                        </td>
+                    `;
+
+        tbody.insertBefore(yeniSatir, tbody.firstChild);
+    }
+
+    function hataKaydet(e) {
+        e.preventDefault();
+        var baslik = document.getElementById('hataBaslik').value;
+        var modul = document.getElementById('hataModul').value;
+        var aciklama = document.getElementById('hataAciklama').value;
+        var bugun = new Date().toLocaleDateString('tr-TR');
+
+        var badge = `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-red-200 inline-flex items-center gap-1">🐛 Hata</span>`;
+        var detay = `<strong>${baslik}</strong> - ${aciklama}`;
+
+        tabloyaYeniSatirEkle(bugun, badge, modul, detay);
+        e.target.reset();
+        hataSekmeAktifEt('gecmis');
+    }
+
+    function geriBildirimKaydet(e) {
+        e.preventDefault();
+        var tur = document.querySelector('input[name="GeriBildirimTuru"]:checked').value;
+        var aciklama = document.getElementById('gbAciklama').value;
+        var bugun = new Date().toLocaleDateString('tr-TR');
+
+        var badge = tur === 'Oneri'
+            ? `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-blue-200 inline-flex items-center gap-1">🎯 Öneri</span>`
+            : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold border border-amber-200 inline-flex items-center gap-1">💡 Fikir</span>`;
+
+        tabloyaYeniSatirEkle(bugun, badge, "Genel / Sistem", aciklama);
+        e.target.reset();
+        hataSekmeAktifEt('gecmis');
+    }
+
+    function hataDurumStilGuncelle(selectElement) {
+        var val = selectElement.value;
+        if (val === 'Cozuldu') {
+            selectElement.className = "bg-emerald-100 text-emerald-800 text-[11px] font-bold py-1 px-2 rounded border border-emerald-300 outline-none cursor-pointer w-full text-center transition-colors";
+        } else if (val === 'Inceleniyor') {
+            selectElement.className = "bg-amber-100 text-amber-800 text-[11px] font-bold py-1 px-2 rounded border border-amber-300 outline-none cursor-pointer w-full text-center transition-colors";
+        } else if (val === 'Bekliyor') {
+            selectElement.className = "bg-rose-100 text-rose-800 text-[11px] font-bold py-1 px-2 rounded border border-rose-300 outline-none cursor-pointer w-full text-center transition-colors";
+        }
+    }
+</script>

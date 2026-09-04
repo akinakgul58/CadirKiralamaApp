@@ -1,0 +1,203 @@
+﻿@model IEnumerable<CadirKiralamaApp.Models.Cari>
+@{
+    ViewData["Title"] = "Cari Kartlar";
+}
+
+<!-- Sayfa İskeleti ve Tam Yükseklik Ayarı -->
+<div class="flex flex-col h-[calc(100vh-64px)]">
+    <!-- STICKY HEADER & AKSİYON BARI -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+        <div class="px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+
+            <!-- Sol: Breadcrumb & Başlık -->
+            <div class="flex items-center gap-4">
+                <div class="p-2.5 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+                <div>
+                    <nav class="text-xs font-semibold text-slate-400 mb-0.5 flex items-center gap-2">
+                        <a href="/" class="hover:text-primary transition">Dashboard</a>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
+                        <span class="text-primary">Cari Yönetimi</span>
+                    </nav>
+                    <h1 class="text-xl font-bold text-dark flex items-center gap-2">
+                        Firma ve Müşteri Listesi
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Sağ: Aksiyon Butonu -->
+            <div>
+                <a asp-action="Ekle" class="bg-primary hover:bg-blue-900 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Yeni Cari Kart Ekle
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK ALANI -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+        <div class="max-w-[1500px] mx-auto space-y-4">
+
+            <!-- ARAMA VE FİLTRELEME ÇUBUĞU -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4">
+
+                <!-- Arama Kutusu -->
+                <div class="relative w-full lg:w-96">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-slate-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Firma adı, yetkili veya telefon ara..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-secondary outline-none transition">
+                </div>
+
+                <!-- Filtreler -->
+                <div class="flex items-center gap-3 w-full lg:w-auto">
+                    <select class="w-full lg:w-auto p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-secondary">
+                        <option value="">Tüm Kategoriler</option>
+                        <option value="Müşteri">Müşteri (Alıcı)</option>
+                        <option value="Tedarikçi">Tedarikçi (Satıcı)</option>
+                    </select>
+
+                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-600 p-2 rounded-lg transition" title="Filtrele">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CARİ TABLOSU -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="bg-slate-100/80 text-slate-500 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-4 w-12 text-center">#</th>
+                                <th class="p-4">Firma Unvanı</th>
+                                <th class="p-4">Yetkili Kişi & İletişim</th>
+                                <th class="p-4">Müşteri Temsilcisi</th> <!-- 🚀 EKLENEN BAŞLIK -->
+                                <th class="p-4">Lokasyon</th>
+                                <th class="p-4 text-center">Cari Tipi</th>
+                                <th class="p-4 text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @if (Model != null && Model.Any())
+                            {
+                                int index = 1;
+                                foreach (var item in Model)
+                                {
+                                    // Firma baş harfini almak için güvenli kontrol
+                                    string basHarf = !string.IsNullOrEmpty(item.FirmaUnvani) ? item.FirmaUnvani.Substring(0, 1).ToUpper() : "C";
+
+                                    <tr class="hover:bg-slate-50 transition group">
+                                        <!-- Sıra No -->
+                                        <td class="p-4 text-center text-slate-400 font-medium">@index</td>
+
+                                        <!-- Unvan & Vergi No -->
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-lg bg-blue-100 text-primary flex items-center justify-center font-bold text-lg">
+                                                    @basHarf
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-slate-800">@item.FirmaUnvani</div>
+                                                    <div class="text-xs text-slate-500 font-mono">
+                                                        @(string.IsNullOrEmpty(item.VergiNo) ? "Vergi No: -" : "VN: " + item.VergiNo)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- İletişim -->
+                                        <td class="p-4">
+                                            <div class="font-semibold text-slate-700">@(string.IsNullOrEmpty(item.YetkiliKisi) ? "Belirtilmemiş" : item.YetkiliKisi)</div>
+                                            <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                                                <span title="Telefon"><i class="fas fa-phone text-slate-400"></i> @(string.IsNullOrEmpty(item.Telefon) ? "-" : item.Telefon)</span>
+                                                <span title="E-Posta"><i class="fas fa-envelope text-slate-400"></i> @(string.IsNullOrEmpty(item.Eposta) ? "-" : item.Eposta)</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- 🚀 MÜŞTERİ TEMSİLCİSİ (ANA TEMSİLCİ) -->
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold border border-slate-200">
+                                                    <i class="fas fa-user-tie text-secondary"></i>
+                                                </div>
+                                                <span class="font-semibold text-slate-700 text-xs">@item.AnaTemsilci</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Lokasyon (Şehir / İlçe) -->
+                                        <td class="p-4">
+                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">
+                                                <i class="fas fa-map-marker-alt text-slate-400"></i>
+                                                @(string.IsNullOrEmpty(item.Sehir) ? "Belirtilmemiş" : (string.IsNullOrEmpty(item.Ilce) ? item.Sehir : $"{item.Sehir} / {item.Ilce}"))
+                                            </div>
+                                        </td>
+
+                                        <!-- Cari Tipi -->
+                                        <td class="p-4 text-center">
+                                            @if (item.CariTipi == "Tedarikçi")
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-orange-100 text-orange-700 text-[11px] font-bold">
+                                                    <i class="fas fa-truck text-[10px] mr-1.5"></i> Tedarikçi
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 text-[11px] font-bold">
+                                                    <i class="fas fa-user-tag text-[10px] mr-1.5"></i> Müşteri
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <!-- İşlemler -->
+                                        <td class="p-4 text-right">
+                                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <!-- Hızlı Teklif Oluştur Butonu -->
+                                                <a href="/Teklif/Ekle?cariId=@item.Id" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition" title="Bu Cari İçin Teklif Oluştur">
+                                                    <i class="fas fa-file-invoice-dollar"></i>
+                                                </a>
+                                                <!-- Düzenle Butonu -->
+                                                <a href="/Cari/Ekle/@item.Id" class="p-2 bg-slate-50 text-slate-600 hover:bg-slate-200 rounded transition" title="Düzenle">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <!-- Sil Butonu -->
+                                                <button type="button" class="p-2 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded transition" title="Sil">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-500">
+                                        <i class="fas fa-box-open text-3xl mb-3 text-slate-300 block"></i>
+                                        Henüz sisteme eklenmiş bir cari kayıt bulunmuyor.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINATION (SAYFALAMA) ALT BİLGİSİ -->
+                <div class="bg-slate-50 p-4 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+                    <div>
+                        Toplam <strong>@(Model != null ? Model.Count() : 0)</strong> kayıt listeleniyor.
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button class="px-3 py-1.5 bg-white border border-slate-200 rounded text-slate-400 cursor-not-allowed">Önceki</button>
+                        <button class="px-3 py-1.5 bg-primary text-white border border-primary rounded font-semibold">1</button>
+                        <button class="px-3 py-1.5 bg-white border border-slate-200 rounded hover:bg-slate-50 transition cursor-not-allowed text-slate-400">Sonraki</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

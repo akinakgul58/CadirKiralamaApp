@@ -1,0 +1,232 @@
+﻿@model IEnumerable<CadirKiralamaApp.Models.Urun>
+@{
+    ViewData["Title"] = "Ürün Listesi";
+
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string currentSearch = ViewBag.Search ?? "";
+}
+
+<!-- Üst Toolbar / Başlık -->
+<div class="flex justify-between items-center bg-white px-3 py-2 rounded-t border border-slate-300 shadow-sm mt-1">
+    <h1 class="text-xs font-bold text-slate-800 flex items-center gap-2">
+        <i class="fas fa-boxes text-[#0097A7]"></i> Ürün Listesi (Katalog)
+    </h1>
+
+    <div class="flex items-center gap-1.5">
+        <button type="button" onclick="modalAc()" class="bg-[#0097A7] hover:bg-[#00838F] text-white px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+            <i class="fas fa-plus"></i> Yeni Ürün
+        </button>
+        <button type="button" onclick="location.reload()" class="p-1 px-2 text-slate-500 hover:bg-slate-100 border rounded text-xs" title="Yenile"><i class="fas fa-sync-alt"></i></button>
+    </div>
+</div>
+
+<!-- ERP Grid Tablosu -->
+<div class="bg-white border border-slate-300 border-t-0 shadow-sm overflow-hidden rounded-b mb-6 text-[11px]">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="urunKatalogTablosu">
+            <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-300">
+                <tr>
+                    <th class="p-2 border-r border-slate-200 w-8 text-center text-slate-400">#</th>
+                    <th class="p-2 border-r border-slate-200">Ürün Kodu</th>
+                    <th class="p-2 border-r border-slate-200">Durum</th>
+                    <th class="p-2 border-r border-slate-200">Alış P.Birimi</th>
+                    <th class="p-2 border-r border-slate-200">Satış P.Birimi</th>
+                    <th class="p-2 border-r border-slate-200">Ürün Adı</th>
+                    <th class="p-2 border-r border-slate-200">Ü. Model</th>
+                    <th class="p-2 border-r border-slate-200">Açıklama</th>
+                    <th class="p-2 border-r border-slate-200">Birim</th>
+                    <th class="p-2 border-r border-slate-200">Ürün Tipi</th>
+                    <th class="p-2 border-r border-slate-200 text-right">Satış Tutarı</th>
+                    <th class="p-2 text-right">Alış Tutarı</th>
+                </tr>
+                <!-- Filtre Satırı -->
+                <tr class="bg-slate-100/70 border-b border-slate-300">
+                    <td class="p-1 border-r text-center"></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(1, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(2, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(3, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(4, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(5, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(6, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(7, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(8, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(9, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1 border-r"><input type="text" onkeyup="tabloFiltrele(10, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                    <td class="p-1"><input type="text" onkeyup="tabloFiltrele(11, this.value)" placeholder="🔍 Ara..." class="w-full p-1 border rounded text-[10px] bg-white outline-none focus:border-blue-500" /></td>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var urun in Model)
+                    {
+                        if (urun == null) continue;
+                        <tr class="hover:bg-sky-50/70 transition border-b border-slate-200">
+                            <td class="p-2 border-r text-center text-slate-400"><i class="fas fa-ellipsis-v"></i></td>
+                            <td class="p-2 border-r font-medium text-slate-700">@(urun.UrunKodu ?? "-")</td>
+                            <td class="p-2 border-r text-slate-600">@(urun.Durum ?? "Aktif")</td>
+                            <td class="p-2 border-r text-slate-600">@(urun.AlisParaBirimi ?? "TL")</td>
+                            <td class="p-2 border-r text-slate-600">@(urun.SatisParaBirimi ?? "TL")</td>
+                            <td class="p-2 border-r font-bold text-[#0070E0] hover:underline cursor-pointer">
+                                @(urun.UrunAdi ?? "-")
+                            </td>
+                            <td class="p-2 border-r text-slate-500">@(urun.UrunModeli ?? "")</td>
+                            <td class="p-2 border-r text-slate-500 max-w-[180px] truncate" title="@urun.Aciklama">@(urun.Aciklama ?? "-")</td>
+                            <td class="p-2 border-r text-slate-600">@(urun.Birim ?? "Adet")</td>
+                            <td class="p-2 border-r text-slate-600">@(urun.UrunTipi ?? "Ürün")</td>
+                            <td class="p-2 border-r text-right font-bold text-slate-800">@urun.SatisFiyati.ToString("N2") TL</td>
+                            <td class="p-2 text-right text-slate-600">@urun.AlisFiyati.ToString("N2") TL</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="12" class="p-8 text-center text-slate-400 font-medium">Henüz kayıtlı ürün bulunamadı. "Yeni Ürün" butonunu kullanarak ekleyebilirsiniz.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Alt Bilgilendirme ve Sayfalama -->
+    <div class="bg-slate-50 border-t border-slate-300 p-2 flex justify-between items-center text-slate-600 text-[11px]">
+        <!-- Sayfada Göster (10, 20, 50 Butonları) -->
+        <div class="flex items-center gap-1.5">
+            <span class="font-semibold text-slate-500 mr-1">Sayfada Göster:</span>
+            <a asp-controller="Stok" asp-action="Urunler" asp-route-pageSize="10" asp-route-search="@currentSearch"
+               class="px-2 py-0.5 border rounded font-semibold transition @(pageSize == 10 ? "bg-[#1E387B] text-white border-[#1E387B]" : "bg-white text-slate-600 hover:bg-slate-100")">
+                10
+            </a>
+            <a asp-controller="Stok" asp-action="Urunler" asp-route-pageSize="20" asp-route-search="@currentSearch"
+               class="px-2 py-0.5 border rounded font-semibold transition @(pageSize == 20 ? "bg-[#1E387B] text-white border-[#1E387B]" : "bg-white text-slate-600 hover:bg-slate-100")">
+                20
+            </a>
+            <a asp-controller="Stok" asp-action="Urunler" asp-route-pageSize="50" asp-route-search="@currentSearch"
+               class="px-2 py-0.5 border rounded font-semibold transition @(pageSize == 50 ? "bg-[#1E387B] text-white border-[#1E387B]" : "bg-white text-slate-600 hover:bg-slate-100")">
+                50
+            </a>
+        </div>
+
+        <!-- Sayfa Navigasyonu (Önceki / Sonraki) -->
+        <div class="flex items-center gap-3">
+            @if (totalPages > 1)
+            {
+                <div class="flex items-center gap-1">
+                    @if (currentPage > 1)
+                    {
+                        <a asp-controller="Stok" asp-action="Urunler" asp-route-page="@(currentPage - 1)" asp-route-pageSize="@pageSize" asp-route-search="@currentSearch"
+                           class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-100 font-bold">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    }
+                    <span class="px-2 py-0.5 text-slate-700 font-semibold">Sayfa @currentPage / @totalPages</span>
+                    @if (currentPage < totalPages)
+                    {
+                        <a asp-controller="Stok" asp-action="Urunler" asp-route-page="@(currentPage + 1)" asp-route-pageSize="@pageSize" asp-route-search="@currentSearch"
+                           class="px-2 py-0.5 border rounded bg-white text-slate-600 hover:bg-slate-100 font-bold">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    }
+                </div>
+            }
+
+            <div>
+                Listelenen Öğe Sayısı: <strong class="text-slate-800">@(Model?.Count() ?? 0)</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Popup -->
+<div id="urunModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+    <div class="bg-white rounded shadow-xl w-full max-w-lg overflow-hidden border">
+        <div class="bg-[#1E387B] text-white p-3 flex justify-between items-center">
+            <h3 class="font-bold text-xs flex items-center gap-1.5"><i class="fas fa-plus-circle"></i> Yeni Ürün / Hizmet Ekle</h3>
+            <button type="button" onclick="modalKapat()" class="hover:text-red-300 text-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <form asp-controller="Stok" asp-action="UrunKaydet" method="post" class="p-4 space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Ürün Kodu *</label>
+                    <input type="text" name="UrunKodu" required placeholder="Örn: KC01" class="w-full border p-1.5 rounded outline-none focus:border-blue-600" />
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Ürün Tipi</label>
+                    <select name="UrunTipi" class="w-full border p-1.5 rounded outline-none bg-white">
+                        <option value="Ürün">Ürün</option>
+                        <option value="Hizmet">Hizmet</option>
+                        <option value="Ekipman">Ekipman</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-600 mb-1">Ürün Adı *</label>
+                <input type="text" name="UrunAdi" required placeholder="Örn: HTS GZ 40-6M ÇADIR" class="w-full border p-1.5 rounded outline-none focus:border-blue-600" />
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-600 mb-1">Ürün Açıklaması</label>
+                <textarea name="Aciklama" rows="2" placeholder="Ürün ile ilgili ek detay ve açıklamaları giriniz..." class="w-full border p-1.5 rounded outline-none focus:border-blue-600 resize-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Modeli</label>
+                    <input type="text" name="UrunModeli" placeholder="Örn: 2026 Seri" class="w-full border p-1.5 rounded outline-none" />
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Birim</label>
+                    <select name="Birim" class="w-full border p-1.5 rounded outline-none bg-white">
+                        <option value="Adet">Adet</option>
+                        <option value="m2">m2</option>
+                        <option value="Metre">Metre</option>
+                        <option value="Gün">Gün</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Satış Fiyatı (₺)</label>
+                    <input type="number" step="0.01" name="SatisFiyati" value="0.00" class="w-full border p-1.5 rounded outline-none" />
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Alış Fiyatı (₺)</label>
+                    <input type="number" step="0.01" name="AlisFiyati" value="0.00" class="w-full border p-1.5 rounded outline-none" />
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button type="button" onclick="modalKapat()" class="px-3 py-1.5 border rounded hover:bg-slate-100">İptal</button>
+                <button type="submit" class="px-4 py-1.5 bg-[#1E387B] text-white rounded font-bold hover:bg-blue-900">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function modalAc() { document.getElementById('urunModal').classList.remove('hidden'); }
+    function modalKapat() { document.getElementById('urunModal').classList.add('hidden'); }
+
+    function tabloFiltrele(colIndex, value) {
+        const table = document.getElementById("urunKatalogTablosu");
+        const tr = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+        const filter = value.toUpperCase();
+
+        for (let i = 0; i < tr.length; i++) {
+            const td = tr[i].getElementsByTagName("td")[colIndex];
+            if (td) {
+                const txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
